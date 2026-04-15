@@ -1,291 +1,86 @@
-# Hibernate interview questions
+## ORM trong Hibernate là gì?
+**ORM (Object Relational Mapping)** là kỹ thuật ánh xạ vật thể - quan hệ. Anh có thể hiểu đơn giản nó là một "cây cầu" giúp chuyển đổi dữ liệu từ các bảng trong cơ sở dữ liệu (Database) sang các đối tượng (Object) trong lập trình Java. Nó giúp việc tạo, sửa, xóa và lấy dữ liệu trở nên đơn giản hơn rất nhiều vì anh chỉ cần thao tác với Code Java thay vì viết SQL thô.
 
-+ [What is ORM in Hibernate?](#what-is-orm-in-hibernate)
-+ [What are the advantages of Hibernate over JDBC?](#what-are-the-advantages-of-hibernate-over-jdbc)
-+ [What are some of the important interfaces of Hibernate framework?](#what-are-some-of-the-important-interfaces-of-hibernate-framework)
-+ [What is a Session in Hibernate?](#what-is-a-session-in-hibernate)
-+ [Can you explain what is lazy loading in hibernate?](#can-you-explain-what-is-lazy-loading-in-hibernate)
-+ [What is the difference between first level cache and second level cache?](#what-is-the-difference-between-first-level-cache-and-second-level-cache)
-+ [Can you explain the concept behind Hibernate Inheritance Mapping?](#can-you-explain-the-concept-behind-hibernate-inheritance-mapping)
-+ [What are the most commonly used annotations available to support hibernate mapping?](#what-are-the-most-commonly-used-annotations-available-to-support-hibernate-mapping)
-+ [Differentiate between get() and load() in Hibernate session](#differentiate-between-get-and-load-in-hibernate-session)
-+ [What is criteria API in hibernate?](#what-is-criteria-api-in-hibernate)
-+ [What is HQL?](#what-is-hql)
-+ [Does Hibernate support Native SQL Queries?](#does-hibernate-support-native-sql-queries)
-+ [Can you tell something about the N+1 SELECT problem in Hibernate?](#can-you-tell-something-about-the-n1-select-problem-in-hibernate)
-+ [How to solve N+1 SELECT problem in Hibernate?](#how-to-solve-n1-select-problem-in-hibernate)
-+ [What is Single Table Strategy?](#what-is-single-table-strategy)
+## Ưu điểm của Hibernate so với JDBC là gì?
+* **Code sạch và dễ đọc:** Loại bỏ các đoạn code lặp đi lặp lại của JDBC, giúp code gọn gàng hơn.
+* **HQL (Hibernate Query Language):** Đây là ngôn ngữ truy vấn hướng đối tượng, rất gần với Java. Nó giúp anh viết truy vấn mà không cần quan tâm Database bên dưới là MySQL hay Oracle (không phụ thuộc vào loại DB).
+* **Quản lý giao dịch (Transaction):** JDBC bắt anh phải tự viết code `commit` và `rollback` thủ công, còn Hibernate tự động xử lý việc này.
+* **Xử lý ngoại lệ:** Hibernate bao bọc các lỗi phức tạp của JDBC thành các lỗi dễ hiểu, giúp anh không phải viết quá nhiều khối `try-catch`.
+* **Tính năng đặc biệt:** Hỗ trợ các tính năng của lập trình hướng đối tượng (OOP) như kế thừa, quan hệ giữa các bảng và Collection (List, Set...) - điều mà JDBC không làm được.
 
-## What is ORM in Hibernate?
+## Các Interface quan trọng của Hibernate Framework?
+Các "khớp nối" quan trọng nhất gồm:
+* **Configuration:** Cấu hình hệ thống.
+* **SessionFactory:** Nhà máy tạo ra các Session (thường mỗi dự án chỉ có 1 cái).
+* **Session:** Giữ kết nối giữa Java và Database (dùng để lưu/xóa dữ liệu).
+* **Criteria:** Dùng để tạo các câu truy vấn động.
+* **Query:** Thực thi các câu lệnh truy vấn.
+* **Transaction:** Quản lý các phiên giao dịch.
 
-Hibernate ORM stands for Object Relational Mapping. 
-This is a mapping tool pattern mainly used for converting data stored in a relational database to an object used 
-in object-oriented programming constructs. This tool also helps greatly in simplifying data retrieval, 
-creation, and manipulation.
+## Session trong Hibernate là gì?
+**Session** là một đối tượng duy trì kết nối giữa ứng dụng Java và Database. Nó cung cấp các phương thức để làm việc với dữ liệu như: `persist()` (lưu), `get()` (lấy), `update()` (cập nhật), `delete()` (xóa).
 
-## What are the advantages of Hibernate over JDBC?
+## SessionFactory là gì?
+Đây là lớp "nhà máy" dùng để tạo ra các đối tượng Session dựa trên các tham số cấu hình. Thông thường, một ứng dụng chỉ nên có một `SessionFactory` duy nhất. Nó không thể thay đổi sau khi đã tạo và chứa các thông tin quan trọng (metadata) về việc ánh xạ dữ liệu.
 
-+ Clean Readable Code: Using hibernate, helps in eliminating a lot of JDBC API-based boiler-plate codes, 
-thereby making the code look cleaner and readable.
-+ HQL (Hibernate Query Language): Hibernate provides HQL which is closer to Java and is object-oriented in nature. 
-This helps in reducing the burden on developers for writing database independent queries. In JDBC, this is not the case. 
-A developer has to know the database-specific codes.
-+ Transaction Management: JDBC doesn't support implicit transaction management. 
-It is upon the developer to write transaction management code using commit and rollback methods. Whereas, Hibernate 
-implicity provides this feature.
-+ Exception Handling: Hibernate wraps the JDBC exceptions and throws unchecked exceptions like JDBCException or 
-HibernateException. This along with the built-in transaction management system helps developers to avoid writing 
-multiple try-catch blocks to handle exceptions. In the case of JDBC, it throws a checked exception called SQLException 
-thereby mandating the developer to write try-catch blocks to handle this exception at compile time.
-+ Special Features: Hibernate supports OOPs features like inheritance, associations and also supports collections. 
-These are not available in JDBC.
+## Lazy Loading (Tải chậm) là gì?
+Đây là tính năng giúp tăng hiệu năng bằng cách **chỉ tải dữ liệu khi thực sự cần đến**. 
+*Ví dụ:* Khi anh lấy thông tin một "Lớp học", Hibernate chưa tải danh sách "Học sinh" ngay. Chỉ khi nào anh gọi đến `lopHoc.getDanhSachHocSinh()`, dữ liệu học sinh mới được truy vấn từ Database.
 
-## What are some of the important interfaces of Hibernate framework?
+## Sự khác biệt giữa Cache cấp 1 và Cache cấp 2?
 
-Hibernate core interfaces are:
+| Đặc điểm | Cache cấp 1 (First Level) | Cache cấp 2 (Second Level) |
+| :--- | :--- | :--- |
+| **Phạm vi** | Chỉ nằm trong 1 **Session**. Không chia sẻ được giữa các Session khác nhau. | Nằm ở cấp **SessionFactory**. Tất cả các Session đều dùng chung được. |
+| **Mặc định** | Luôn luôn bật, không tắt được. | Mặc định tắt, phải cấu hình mới dùng được. |
+| **Vòng đời** | Mất đi ngay khi đóng Session. | Sống suốt vòng đời ứng dụng, chỉ mất khi khởi động lại app. |
 
-+ Configuration
-+ SessionFactory
-+ Session
-+ Criteria
-+ Query
-+ Transaction
+## Khái niệm Kế thừa (Inheritance Mapping)?
+Java có tính kế thừa (ví dụ: Học sinh kế thừa từ Người), nhưng Database thì chỉ có các bảng phẳng, không có khái niệm kế thừa. Hibernate giải quyết vấn đề này bằng các chiến lược:
+* **Single Table:** Tất cả các lớp cha/con dùng chung 1 bảng duy nhất.
+* **Table Per Class:** Mỗi lớp con có 1 bảng riêng.
+* **Joined Table:** Lớp cha 1 bảng, lớp con 1 bảng, liên kết với nhau bằng khóa ngoại.
 
-## What is a Session in Hibernate?
+## Các Annotation (chú thích) phổ biến?
+* `@Entity`: Đánh dấu class này là một bảng trong DB.
+* `@Table`: Tên bảng tương ứng trong DB.
+* `@Id`: Đánh dấu đây là khóa chính.
+* `@GeneratedValue`: Cách tự động sinh số thứ tự (ID).
+* `@Column`: Tên cột trong bảng.
+* `@OneToOne`, `@OneToMany`...: Định nghĩa các mối quan hệ giữa các bảng.
 
-A session is an object that maintains the connection between Java object application and database. 
-Session also has methods for storing, retrieving, modifying or deleting data from database using methods like 
-persist(), load(), get(), update(), delete(), etc. 
-Additionally, It has factory methods to return Query, Criteria, and Transaction objects.
+## Khác biệt giữa get() và load()?
 
-## What is a SessionFactory?
+| get() | load() |
+| :--- | :--- |
+| Lấy dữ liệu ngay lập tức khi gọi hàm. | Trả về một đối tượng "giả" (proxy), chỉ lấy dữ liệu khi thực sự truy cập vào thuộc tính. |
+| Truy vấn Database mỗi khi gọi. | Chỉ truy vấn khi thực sự cần (Lazy Loading). |
+| Nếu không thấy dữ liệu -> trả về `null`. | Nếu không thấy dữ liệu -> báo lỗi `ObjectNotFoundException`. |
+| Dùng khi không chắc chắn dữ liệu có tồn tại hay không. | Dùng khi biết chắc chắn dữ liệu đang nằm trong DB. |
 
-SessionFactory provides an instance of Session. It is a factory class that gives the Session objects based on 
-the configuration parameters in order to establish the connection to the database.
-As a good practice, the application generally has a single instance of SessionFactory. 
-The internal state of a SessionFactory which includes metadata about ORM is immutable, i.e once the instance is created,
-it cannot be changed.
+## Criteria API là gì?
+Đây là cách tạo câu lệnh truy vấn bằng Code Java (hướng đối tượng) thay vì viết chuỗi HQL. Nó cực kỳ mạnh mẽ khi anh cần xây dựng các bộ lọc tìm kiếm động (ví dụ: người dùng chọn lọc theo tên thì thêm điều kiện tên, chọn theo tuổi thì thêm điều kiện tuổi).
 
-This also provides the facility to get information like statistics and metadata related to a class, query executions, 
-etc. It also holds second-level cache data if enabled.
+## HQL là gì?
+**HQL** là ngôn ngữ truy vấn của Hibernate. Nó giống SQL nhưng thay vì viết tên Bảng (`table_name`), anh viết tên Class Java. Điều này giúp anh đổi Database thoải mái mà không cần sửa lại câu lệnh truy vấn.
 
-## Can you explain what is lazy loading in hibernate?
+## Hibernate có hỗ trợ SQL thuần (Native SQL) không?
+**Có.** Anh có thể dùng hàm `createSQLQuery()` để viết các câu lệnh SQL y hệt như khi anh thao tác trực tiếp trên MySQL Workbench.
 
-Lazy loading is mainly used for improving the application performance by helping to load the child objects on demand.
+## Vấn đề N+1 SELECT là gì?
+Đây là một lỗi về hiệu năng. 
+*Ví dụ:* Anh muốn lấy 100 danh mục sản phẩm (1 câu query). Với mỗi danh mục, anh lại tốn thêm 1 câu query để lấy tên các sản phẩm bên trong. Tổng cộng anh tốn 1 + 100 = 101 câu query. Điều này làm ứng dụng chạy rất chậm.
 
-It is to be noted that, since Hibernate 3 version, this feature has been enabled by default. 
-This signifies that child objects are not loaded until the parent gets loaded.
+## Cách giải quyết vấn đề N+1?
+* Sử dụng **Batch fetching** (Lấy dữ liệu theo lô).
+* Sử dụng **Join fetching** (Dùng lệnh Join để lấy hết dữ liệu trong 1 câu query duy nhất).
+* Tắt Lazy loading ở những nơi cần thiết.
 
-## What is the difference between first level cache and second level cache?
+## Chiến lược Single Table là gì?
+Là cách lưu toàn bộ sơ đồ kế thừa vào **duy nhất một bảng**. Hibernate dùng một cột đặc biệt (Discriminator) để phân biệt dòng nào thuộc về lớp nào. Đây là cách có hiệu năng tốt nhất vì không cần thực hiện lệnh Join giữa các bảng.
 
-Hibernate has 2 cache types. First level and second level cache for which the difference is given below:
+## Chiến lược Table Per Class là gì?
+Mỗi lớp (kể cả lớp cha và lớp con) đều có bảng riêng trong Database.
 
-| First Level Cache  | Second Level Cache  |
-|---|---|
-| This is local to the Session object and cannot be shared between multiple sessions.  | This cache is maintained at the SessionFactory level and shared among all sessions in Hibernate.  |
-|  This cache is enabled by default and there is no way to disable it. |  This is disabled by default, but we can enable it through configuration. |
-|  The first level cache is available only until the session is open, once the session is closed, the first level cache is destroyed. | The second-level cache is available through the application’s life cycle, it is only destroyed and recreated when an application is restarted.  |
-
-If an entity or object is loaded by calling the get() method then Hibernate first checked the first level cache, 
-if it doesn’t find the object then it goes to the second level cache if configured. 
-If the object is not found then it finally goes to the database and returns the object, if there is no corresponding row 
-in the table then it returns null.
-
-## Can you explain the concept behind Hibernate Inheritance Mapping?
-
-Java is an Object-Oriented Programming Language and Inheritance is one of the most important pillars of 
-object-oriented principles. To represent any models in Java, inheritance is most commonly used to simplify and 
-simplify the relationship. But, there is a catch. Relational databases do not support inheritance. 
-They have a flat structure.
-
-There are different inheritance mapping strategies available:
-
-+ Single Table Strategy
-+ Table Per Class Strategy
-+ Mapped Super Class Strategy
-+ Joined Table Strategy
-
-## What are the most commonly used annotations available to support hibernate mapping?
-
-+ javax.persistence.Entity: This annotation is used on the model classes by using “@Entity” 
-and tells that the classes are entity beans.
-+ javax.persistence.Table: This annotation is used on the model classes by using “@Table” and tells that the class maps 
-to the table name in the database.
-+ javax.persistence.Access: This is used as “@Access” and is used for defining the access type of either field or property. 
-When nothing is specified, the default value taken is “field”.
-+ javax.persistence.Id: This is used as “@Id” and is used on the attribute in a class to indicate that attribute is 
-the primary key in the bean entity.
-+ javax.persistence.EmbeddedId: Used as “@EmbeddedId” upon the attribute and indicates it is a composite primary key 
-of the bean entity.
-+ javax.persistence.Column: “@Column” is used for defining the column name in the database table.
-+ javax.persistence.GeneratedValue: “@GeneratedValue” is used for defining the strategy used for primary key generation. 
-This annotation is used along with javax.persistence.GenerationType enum.
-+ javax.persistence.OneToOne: “@OneToOne” is used for defining the one-to-one mapping between two bean entities. 
-Similarly, hibernate provides OneToMany, ManyToOne and ManyToMany annotations for defining different mapping types.
-+ org.hibernate.annotations.Cascade: “@Cascade” annotation is used for defining the cascading action between 
-two bean entities. It is used with org.hibernate.annotations.CascadeType enum to define the type of cascading.
-
-## Differentiate between get() and load() in Hibernate session
-
-| get()  | load()  |
-|---|---|
-| This method gets the data from the database as soon as it is called.  | This method returns a proxy object and loads the data only when it is required.  |
-| The database is hit every time the method is called. |  The database is hit only when it is really needed and this is called Lazy Loading which makes the method better. |
-| The method returns null if the object is not found. | The method throws ObjectNotFoundException if the object is not found. |
-| This method should be used if we are unsure about the existence of data in the database. | This method is to be used when we know for sure that the data is present in the database. |
-
-## What is criteria API in hibernate?
-
-Criteria API in Hibernate helps developers to build dynamic criteria queries on the persistence database. 
-Criteria API is a more powerful and flexible alternative to HQL (Hibernate Query Language) queries for creating dynamic queries.
-
-This API allows to programmatically development criteria query objects. The org.hibernate.Criteria interface is used 
-for these purposes. The Session interface of hibernate framework has createCriteria() method that takes 
-the persistent object’s class or its entity name as the parameters and returns persistence object instance 
-the criteria query is executed.
-
-It also makes it very easy to incorporate restrictions to selectively retrieve data from the database. 
-It can be achieved by using the add() method which accepts the org.hibernate.criterion.Criterion object representing individual restriction.
-
-To return all the data of InterviewBitEmployee entity class.
-```java
-Criteria criteria = session.createCriteria(InterviewBitEmployee.class);
-List<InterviewBitEmployee> results = criteria.list();
-```
-To retrive objects whose property has value equal to the restriction, we use Restrictions.eq() method. 
-For example, to fetch all records with name ‘Hibernate’:
-```java
-Criteria criteria= session.createCriteria(InterviewBitEmployee.class);
-criteria.add(Restrictions.eq("fullName","Hibernate"));
-List<InterviewBitEmployee> results = criteria.list();
-```
-To get objects whose property has the value “not equal to” the restriction, we use Restrictions.ne() method. 
-For example, to fetch all the records whose employee’s name is not Hibernate:
-```java
-Criteria criteria= session.createCriteria(InterviewBitEmployee.class);
-criteria.add(Restrictions.ne("fullName","Hibernate"));
-List<Employee> results = criteria.list()
-```
-To retrieve all objects whose property matches a given pattern, we use Restrictions.like() (for case sensitivenes) 
-and Restrictions.ilike()(for case insensitiveness)
-```java
-Criteria criteria= session.createCriteria(InterviewBitEmployee.class);
-criteria.add(Restrictions.like("fullName","Hib%",MatchMode.ANYWHERE));
-List<InterviewBitEmployee> results = criteria.list();
-```
-## What is HQL?
-
-Hibernate Query Language (HQL) is used as an extension of SQL. It is very simple, efficient, and very flexible for 
-performing complex operations on relational databases without writing complicated queries. HQL is the object-oriented 
-representation of query language, i.e instead of using table name, we make use of the class name which makes this language 
-independent of any database.
-
-```java
-Query query=session.createQuery("from InterviewBitEmployee");  
-List<InterviewBitEmployee> list=query.list();  
-System.out.println(list.get(0));
-```
-
-## Does Hibernate support Native SQL Queries?
-
-Yes, it does. Hibernate provides the createSQLQuery() method to let a developer call the native SQL statement directly 
-and returns a Query object.
-
-Consider the example where you want to get employee data with the full name “Hibernate”. 
-We don’t want to use HQL-based features, instead, we want to write our own SQL queries. In this case, the code would be:
-```java
-Query query = session.createSQLQuery( "select * from interviewbit_employee ibe where ibe.fullName = :fullName")
-                   .addEntity(InterviewBitEmployee.class)
-                   .setParameter("fullName", "Hibernate"); //named parameters
-List result = query.list();
-```
-Alternatively, native queries can also be supported when using NamedQueries.
-
-## Can you tell something about the N+1 SELECT problem in Hibernate?
-
-N+1 SELECT problem is due to the result of using lazy loading and on-demand fetching strategy. 
-Let's take an example. If you have an N items list and each item from the list has a dependency on a collection 
-of another object, say bid. In order to find the highest bid for each item while using the lazy loading strategy, 
-hibernate has to first fire 1 query to load all items and then subsequently fire N queries to load big of each item. 
-Hence, hibernate actually ends up executing N+1 queries.
-
-## How to solve N+1 SELECT problem in Hibernate?
-
-Some of the strategies followed for solving the N+1 SELECT problem are:
-
-+ Pre-fetch the records in batches which helps us to reduce the problem of N+1 to (N/K) + 1 where 
-K refers to the size of the batch.
-+ Subselect the fetching strategy
-+ As last resort, try to avoid or disable lazy loading altogether.
-
-## What is Single Table Strategy?
-
-Single Table Strategy is a hibernate’s strategy for performing inheritance mapping. 
-This strategy is considered to be the best among all the other existing ones. 
-Here, the inheritance data hierarchy is stored in the single table by making use of a discriminator column which 
-determines to what class the record belongs.
-
-```java
-@Entity
-@Table(name = "InterviewBitEmployee")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "employee_type")
-@NoArgsConstructor
-@AllArgsConstructor
-public class InterviewBitEmployee {
-   @Id
-   @Column(name = "employee_id")
-   private String employeeId;
-   private String fullName;
-   private String email;
-}
-```
-
-## Can you tell something about Table Per Class Strategy.
-
-Table Per Class Strategy is another type of inheritance mapping strategy where each class in 
-the hierarchy has a corresponding mapping database table.
-Hibernate provides @Inheritance annotation which takes strategy as the parameter. 
-This is used for defining what strategy we would be using. By giving them value, InheritanceType.TABLE_PER_CLASS, 
-it signifies that we are using a table per class strategy for mapping.
-```java
-@Entity(name = "interviewbit_employee")
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-@NoArgsConstructor
-@AllArgsConstructor
-public class InterviewBitEmployee {
-   @Id
-   @Column(name = "employee_id")
-   private String employeeId;
-   private String fullName;
-   private String email;
-}
-```
-
-## Can you tell something about Named SQL Query
-
-A named SQL query is an expression represented in the form of a table. 
-Here, SQL expressions to select/retrieve rows and columns from one or more tables in one or more databases 
-can be specified. This is like using aliases to the queries.
-
-In hibernate, we can make use of @NameQueries and @NameQuery annotations.
-
-@NameQueries annotation is used for defining multiple named queries.
-@NameQuery annotation is used for defining a single named query.
-
-```java
-@NamedQueries(  
-   {  
-       @NamedQuery(  
-       name = "findIBEmployeeByFullName",  
-       query = "from InterviewBitEmployee e where e.fullName = :fullName"  
-       )  
-   }  
-)  
-```
-usage
-```java
-TypedQuery query = session.getNamedQuery("findIBEmployeeByFullName");    
-query.setParameter("fullName","Hibernate");   
-List<InterviewBitEmployee> ibEmployees = query.getResultList();
-```
+## Named SQL Query là gì?
+Là việc anh đặt tên cho một câu lệnh truy vấn và lưu nó lại (thường dùng Annotation `@NamedQuery` trên đầu Class). Khi cần dùng, anh chỉ cần gọi tên đó ra thay vì viết lại cả câu lệnh. Nó giống như việc đặt "biệt danh" cho câu truy vấn để tái sử dụng nhiều lần.
